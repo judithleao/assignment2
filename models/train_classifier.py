@@ -1,3 +1,11 @@
+'''
+>> Potentially need to install <<
+pip install langdetect
+pip install plotly_express
+
+pandas must be updated
+'''
+
 # import libraries
 import sys
 import nltk
@@ -27,6 +35,7 @@ from sklearn.multioutput import MultiOutputClassifier
 from sklearn.metrics import classification_report, accuracy_score
 # my own module
 from length_estimator import LengthOfMessage
+from langdetect import detect
 
 
 
@@ -64,12 +73,16 @@ def imbalance(df, category_names):
     df_imbalance_per_label = df_imbalance_per_label.rename(columns={0:'imbalance'})
     return df_imbalance_per_label
 
-def pca_on_output_labels(df, category_names):
+
+def return_figures(df, category_names): # Doesn't get called in main, only gets called separately in run.py, where it also gets imported separately
     '''
     INPUT: 
     OUTPUT: 
     PURPOSE: 
     '''
+    ######################################################
+    ############# FIGURE 1: PCA SCATTER PLOT #############
+    ######################################################
     # Create co-occurence matrix
     df_cooc = df[category_names].T.dot(df[category_names])
     np.fill_diagonal(df_cooc.values, 0)
@@ -104,9 +117,44 @@ def pca_on_output_labels(df, category_names):
                  template='simple_white',
                 )
     
-    return fig1
-
-
+    ######################################################
+    ############## FIGURE 2: IMBALANCE PLOT ##############
+    ######################################################
+    fig2 = px.bar(imbalance(df, category_names))
+                
+    ######################################################
+    ################## FIGURE 3: GENRES ##################
+    ######################################################
+    genre_counts = df.groupby('genre').count()['message']
+    genre_names = list(genre_counts.index)
+    fig3 = px.bar(x=genre_names, y=genre_counts)
+    '''
+    ######################################################
+    ################ FIGURE 4: Languages #################
+    ######################################################
+    language_counter_dict = {'n/a': 0}
+    for i in df['original']:
+        try:    
+            lang = detect(i)
+            if lang in language_counter_dict:
+                language_counter_dict[lang] += 1
+            else:
+                language_counter_dict[lang] = 1
+        except:
+            language_counter_dict['n/a'] += 1   
+    df_languages = pd.DataFrame(language_counter_dict, index=[0]).transpose().rename(columns={0:'language'})
+    fig4 = px.bar(df_languages)
+    #----------------------------------------------------#
+    '''
+    figures = [
+               fig1, 
+               fig2, 
+               fig3#, 
+               #fig4
+              ]
+    return figures   
+    
+    
 def tokenize(text):
     '''
     INPUT: 
@@ -200,17 +248,14 @@ def main():
         save_model(model, model_filepath)
 
         print('Trained model saved!')
-        
-        print('Retrieving additional information')
-        print('Creating PCA chart for output labels')
-        pca_figure = pca_on_output_labels(df, category_names)
-        imbalance_table = imbalance(df, category_names)
 
+        
     else:
         print('Please provide the filepath of the disaster messages database '\
               'as the first argument and the filepath of the pickle file to '\
               'save the model to as the second argument. \n\nExample: python '\
               'train_classifier.py ../data/DisasterResponse.db classifier.pkl')
+    
 
 
 if __name__ == '__main__':

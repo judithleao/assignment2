@@ -1,22 +1,29 @@
 import json
 import plotly
 import pandas as pd
+import plotly.express as px
+import numpy as np
 
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
 
 from flask import Flask
 from flask import render_template, request, jsonify
-from plotly.graph_objs import Bar
+#from plotly.graph_objs import Bar
 from sklearn.externals import joblib
 from sqlalchemy import create_engine
+
+# Script to import figures and the needed pca module
+from sklearn.decomposition import PCA
 
 # This helped: https://knowledge.udacity.com/questions/49726, cite this
 # Consider creating a package: https://stackoverflow.com/questions/4383571/importing-files-from-different-folder, answer by joey
 import sys
 sys.path.append("../models")
 from length_estimator import LengthOfMessage
+from train_classifier import return_figures
 
+#-------------------------------------------------------------------------------------------------------#
 
 app = Flask(__name__)
 
@@ -35,6 +42,16 @@ def tokenize(text):
 engine = create_engine('sqlite:///../data/DisasterResponse.db')
 df = pd.read_sql_table('Messages_Table', engine)
 
+# This import is an interim solution >> Should save the categories names as file or db and import same as df
+category_names = ['related', 'request', 'offer', 'aid_related', 'medical_help', 
+       'medical_products', 'search_and_rescue', 'security', 'military',
+       'water', 'food', 'shelter', 'clothing', 'money', 'missing_people',
+       'refugees', 'death', 'other_aid', 'infrastructure_related', 'transport',
+       'buildings', 'electricity', 'tools', 'hospitals', 'shops',
+       'aid_centers', 'other_infrastructure', 'weather_related', 'floods',
+       'storm', 'fire', 'earthquake', 'cold', 'other_weather',
+       'direct_report']
+
 # load model
 model = joblib.load("../models/classifier.pkl")
 
@@ -42,42 +59,19 @@ model = joblib.load("../models/classifier.pkl")
 # index webpage displays cool visuals and receives user input text for model
 @app.route('/')
 @app.route('/index')
-def index():
+def index():     
     
-    # extract data needed for visuals
-    # TODO: Below is an example - modify to extract data for your own visuals
-    genre_counts = df.groupby('genre').count()['message']
-    genre_names = list(genre_counts.index)
-    
-    # create visuals
-    # TODO: Below is an example - modify to create your own visuals
-    graphs = [
-        {
-            'data': [
-                Bar(
-                    x=genre_names,
-                    y=genre_counts
-                )
-            ],
+    figures = return_figures(df, category_names) # as defined via main() function in train_classifier.py
 
-            'layout': {
-                'title': 'Distribution of Message Genres',
-                'yaxis': {
-                    'title': "Count"
-                },
-                'xaxis': {
-                    'title': "Genre"
-                }
-            }
-        }
-    ]
-    
-    # encode plotly graphs in JSON
-    ids = ["graph-{}".format(i) for i, _ in enumerate(graphs)]
-    graphJSON = json.dumps(graphs, cls=plotly.utils.PlotlyJSONEncoder)
-    
-    # render web page with plotly graphs
-    return render_template('master.html', ids=ids, graphJSON=graphJSON)
+    # plot ids for the html id tag
+    ids = ['figure-{}'.format(i) for i, _ in enumerate(figures)]
+
+    # Convert the plotly figures to JSON for javascript in html template
+    figuresJSON = json.dumps(figures, cls=plotly.utils.PlotlyJSONEncoder)
+
+    return render_template('master.html',
+                           ids=ids,
+                           figuresJSON=figuresJSON)
 
 
 # web page that handles user query and displays model results
