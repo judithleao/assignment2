@@ -69,11 +69,11 @@ def imbalance(df, category_names):
         class_chosen = df[i].value_counts()[1]
         dict_value_counts[i] = [class_chosen/(class_chosen + class_not_chosen)]
     df_imbalance_per_label = pd.DataFrame(dict_value_counts).transpose()
-    df_imbalance_per_label = df_imbalance_per_label.rename(columns={0:'imbalance'})
+    df_imbalance_per_label = df_imbalance_per_label.rename(columns={0:'imbalance'}).sort_values(by=['imbalance'], ascending=False)
     return df_imbalance_per_label
 
 
-def return_figures(df, category_names): # Doesn't get called in main, only gets called separately in run.py, where it also gets imported separately
+def return_figures(df, category_names): 
     '''
     INPUT: 
     OUTPUT: 
@@ -83,6 +83,10 @@ def return_figures(df, category_names): # Doesn't get called in main, only gets 
     ############# FIGURE 1: PCA SCATTER PLOT #############
     ######################################################
     # Create co-occurence matrix
+    # Source: Stack Overflow
+    # Question by user3084006. Profile: https://stackoverflow.com/users/3084006/user3084006
+    # Answer by alko. Profile: https://stackoverflow.com/users/1265154/alko
+    # https://stackoverflow.com/questions/20574257/constructing-a-co-occurrence-matrix-in-python-pandas
     df_cooc = df[category_names].T.dot(df[category_names])
     np.fill_diagonal(df_cooc.values, 0)
     
@@ -113,25 +117,33 @@ def return_figures(df, category_names): # Doesn't get called in main, only gets 
                  title=f'Total Explained Variance: {total_var:.2f}%', 
                  text='category', 
                  size='category_size',
+                 labels={'0': 'PCA component 1', '1': 'PCA component 2'},
+                 height=700
                  )
     
     ######################################################
     ############## FIGURE 2: IMBALANCE PLOT ##############
     ######################################################
-    fig2 = px.bar(imbalance(df, category_names))
+    fig2 = px.bar(imbalance(df, category_names), labels={'index': 'Topic', 'value': 'Share of messages tagged with Topic'}, height=650)
+    # Source: plotly community
+    # Answer by vitaminc. Profile: https://community.plotly.com/u/vitaminc
+    # https://community.plotly.com/t/plotly-express-scatter-mapbox-hide-legend/36306
+    fig2.layout.update(showlegend=False)
                 
     ######################################################
     ################## FIGURE 3: GENRES ##################
     ######################################################
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
-    fig3 = px.bar(x=genre_names, y=genre_counts)
+    fig3 = px.bar(x=genre_names, y=genre_counts, labels={'x': 'Genre', 'y': 'Number of messages'})
     
     ######################################################
     ################ FIGURE 4: Languages #################
     ######################################################
     language_df = pd.DataFrame(df['language'].value_counts())
-    fig4 = px.bar(language_df)
+    language_df = language_df.drop(['n/a'], axis=0)
+    fig4 = px.bar(language_df, labels={'index': 'Language', 'value': 'Number of messages'})
+    fig4.layout.update(showlegend=False)
     #----------------------------------------------------#
     
     figures = [
