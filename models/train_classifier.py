@@ -5,10 +5,13 @@ pip install plotly_express
 pandas must be updated
 '''
 
-# import libraries
+# Import libraries
 import sys
 import nltk
-nltk.download(['punkt', 'wordnet', 'averaged_perceptron_tagger', 'stopwords'])
+nltk.download(['punkt', 
+               'wordnet', 
+               'averaged_perceptron_tagger', 
+               'stopwords'])
 
 import re
 import numpy as np
@@ -42,17 +45,19 @@ from length_estimator import LengthOfMessage
 
 def load_data(database_filepath):
     '''
-    INPUT: 
+    INPUT: path leading to database
     OUTPUT: 
-    PURPOSE: 
+        X and Y as independent and dependent variables for training model. 
+        df contains all data. 
+        category_names (list) contains labels for dependent variables.
+    PURPOSE: Load data and format for further use.
     '''
     engine = create_engine('sqlite:///' + str(database_filepath))
     df = pd.read_sql("SELECT * FROM Messages_Table", engine)
     category_names = pd.read_sql("SELECT * FROM Categories_Table", engine)
     category_names = category_names['0'].to_list()
-    # Splitting the data in X and Y variables
+    # Split the data in X and Y variables
     X = df['message']
-    #category_names = [col for col in list(df.columns) if col not in ['id', 'message', 'original', 'genre']]
     Y = df[category_names]
     return X, Y, category_names, df
 
@@ -60,24 +65,29 @@ def load_data(database_filepath):
 def imbalance(df, category_names):
     '''
     INPUT: 
-    OUTPUT: 
-    PURPOSE: 
+        dataframe with all data.
+        category_names (list) contains labels for dependent variables.
+    OUTPUT: dataframe that shows % of messages that had specific label as tag.
+    PURPOSE: Analyse imbalance in dependent variables. Smaller % means more imbalanced.
     '''
     dict_value_counts = {}
-    for i in category_names: ## have not yet removed child_alone
+    for i in category_names:
         class_not_chosen = df[i].value_counts()[0]
         class_chosen = df[i].value_counts()[1]
         dict_value_counts[i] = [class_chosen/(class_chosen + class_not_chosen)]
     df_imbalance_per_label = pd.DataFrame(dict_value_counts).transpose()
-    df_imbalance_per_label = df_imbalance_per_label.rename(columns={0:'imbalance'}).sort_values(by=['imbalance'], ascending=False)
+    df_imbalance_per_label = df_imbalance_per_label.rename(
+        columns={0:'imbalance'}).sort_values(by=['imbalance'], ascending=False)
     return df_imbalance_per_label
 
 
 def return_figures(df, category_names): 
     '''
     INPUT: 
-    OUTPUT: 
-    PURPOSE: 
+        dataframe with all data.
+        category_names (list) contains labels for dependent variables.
+    OUTPUT: 4 charts.
+    PURPOSE: Charting for website.
     '''
     ######################################################
     ############# FIGURE 1: PCA SCATTER PLOT #############
@@ -94,6 +104,10 @@ def return_figures(df, category_names):
     category_size_dict = df[category_names].sum(axis=0).to_dict()
     
     # Create row percentages
+    # Source: Stack Overflow
+    # Question by yourselvs. Profile: https://stackoverflow.com/users/4593740/yourselvs
+    # Answer by jpp. Profile: https://stackoverflow.com/users/9209546/jpp
+    # https://stackoverflow.com/questions/50820659/compute-row-percentages-in-pandas-dataframe
     df_cooc = df_cooc.div(df_cooc.sum(axis=1), axis=0)
     
     # Create array
@@ -104,10 +118,18 @@ def return_figures(df, category_names):
     components = pca.fit_transform(X)
     df_components = pd.DataFrame(components)
     df_components['category'] = category_names
+    # Source: Stack Overflow
+    # Question by Fabio Lamanna. Profile: https://stackoverflow.com/users/2699288/fabio-lamanna
+    # Answer by EdChum. Profile: https://stackoverflow.com/users/704848/edchum
+    # https://stackoverflow.com/questions/29794959/pandas-add-new-column-to-dataframe-from-dictionary
     df_components['category_size'] = df_components['category'].map(category_size_dict)
+    # Source: Stack Overflow
+    # Question by UserYmY. Profile: https://stackoverflow.com/users/2058811/userymy
+    # Answer by EdChum. Profile: https://stackoverflow.com/users/704848/edchum
+    # https://stackoverflow.com/questions/28986489/how-to-replace-text-in-a-column-of-a-pandas-dataframe
     df_components['category'] = df_components['category'].str.replace("_"," ")
     
-    # Retrieve total variance explained
+    # Retrieve total variance explained - see https://plotly.com/python/pca-visualization/
     total_var = pca.explained_variance_ratio_.sum() * 100
     
     # Plot
@@ -124,7 +146,11 @@ def return_figures(df, category_names):
     ######################################################
     ############## FIGURE 2: IMBALANCE PLOT ##############
     ######################################################
-    fig2 = px.bar(imbalance(df, category_names), labels={'index': 'Topic', 'value': 'Share of messages tagged with Topic'}, height=650)
+    fig2 = px.bar(imbalance(df, category_names), 
+                  labels={
+                      'index': 'Topic', 
+                      'value': 'Share of messages tagged with Topic'}, 
+                  height=650)
     # Source: plotly community
     # Answer by vitaminc. Profile: https://community.plotly.com/u/vitaminc
     # https://community.plotly.com/t/plotly-express-scatter-mapbox-hide-legend/36306
@@ -135,14 +161,20 @@ def return_figures(df, category_names):
     ######################################################
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
-    fig3 = px.bar(x=genre_names, y=genre_counts, labels={'x': 'Genre', 'y': 'Number of messages'})
+    fig3 = px.bar(x=genre_names, y=genre_counts, 
+                  labels={
+                      'x': 'Genre', 
+                      'y': 'Number of messages'})
     
     ######################################################
     ################ FIGURE 4: Languages #################
     ######################################################
     language_df = pd.DataFrame(df['language'].value_counts())
     language_df = language_df.drop(['n/a'], axis=0)
-    fig4 = px.bar(language_df, labels={'index': 'Language', 'value': 'Number of messages'})
+    fig4 = px.bar(language_df, 
+                  labels={
+                      'index': 'Language', 
+                      'value': 'Number of messages'})
     fig4.layout.update(showlegend=False)
     #----------------------------------------------------#
     
@@ -157,9 +189,9 @@ def return_figures(df, category_names):
     
 def tokenize(text):
     '''
-    INPUT: 
-    OUTPUT: 
-    PURPOSE: 
+    INPUT: text as instance of 'message' from X.
+    OUTPUT: lemmed as list of separate words.
+    PURPOSE: transforms text into list of words ready for modelling.
     '''
     text = text.lower()
     text = re.sub(r"[^a-zA-Z0-9]", " ", text)
@@ -172,9 +204,9 @@ def tokenize(text):
 
 def build_model():
     '''
-    INPUT: 
-    OUTPUT: 
-    PURPOSE: 
+    INPUT: None.
+    OUTPUT: cv as GridSearchCV object.
+    PURPOSE: set up pipeline and parameters for model.
     '''
     pipeline = Pipeline([
         ('features', FeatureUnion([
@@ -202,8 +234,12 @@ def build_model():
 def evaluate_model(model, X_test, Y_test, category_names):
     '''
     INPUT: 
-    OUTPUT: 
-    PURPOSE: 
+        model as GridSearchCV object.
+        X_test as testing data for independent variables.
+        Y_test as testing data for dependent variables.
+        category_names contains labels for dependent variables.
+    OUTPUT: None
+    PURPOSE: prints metrics to evaluate model performance.
     '''
     Y_pred = model.predict(X_test)
     # List best PARAMETERS
@@ -223,8 +259,17 @@ def evaluate_model(model, X_test, Y_test, category_names):
         print("Classification report for label {}".format(j))
         print(classification_report(Y_test.iloc[:,i], Y_pred[:,i]))
         
-
+# Source: Machine Learning mastery
+# By Jason Brownlee, 08/06/2016 in Python Machine Learning
+# https://machinelearningmastery.com/save-load-machine-learning-models-python-scikit-learn/
 def save_model(model, model_filepath):
+    '''
+    INPUT: 
+       model as GridSearchCV object.
+       model_filepath as path to store model outputs.
+    OUTPUT: None
+    PURPOSE: Comverts model outputs into pickle file and saves to filepath.
+    '''
     filename = model_filepath
     pickle.dump(model, open(filename, 'wb'))
 

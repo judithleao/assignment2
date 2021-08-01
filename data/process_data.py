@@ -16,15 +16,22 @@ from langdetect import detect
 def load_data(messages_filepath, categories_filepath):    
     '''
     INPUT: 
-    OUTPUT: 
-    PURPOSE: 
+        messages_filepath as path to messages.csv.
+        categories_filepath as path to categories.csv.
+    OUTPUT: dataframe that combines both messages.csv and categories.csv.
+    PURPOSE: Merge datasets and return dataframe.
     '''
     messages = pd.read_csv(messages_filepath)
     categories = pd.read_csv(categories_filepath)
     df = pd.merge(messages, categories, on='id')
     return df
 
-def extract_language(snippet):
+def extract_language(snippet):    
+    '''
+    INPUT: snippet (string) as instance of 'original' message from df.
+    OUTPUT: language (string) defining language of snippet
+    PURPOSE: Define language for an original version of a message
+    '''
     try:
         language = detect(snippet)
     except:
@@ -33,9 +40,11 @@ def extract_language(snippet):
     
 def clean_data(df):
     '''
-    INPUT: 
+    INPUT: dataframe with all data.
     OUTPUT: 
-    PURPOSE: 
+        dataframe with all data.
+        category_names (dataframe) contains labels for dependent variables.
+    PURPOSE: Expand categories and clean data (missing, duplicates, recodes, add language column).
     '''
     # Create one numeric column per answer category
     ## Split column into multiple columns at separator ;
@@ -77,12 +86,6 @@ def clean_data(df):
     
     # Missings in x-variable: Drop if no message
     df = df.dropna(axis=0, subset=['message'])
-        
-    '''
-    # Missings in y-variable: Drop row if more than half missing, else replace with 0
-    df = df.dropna(axis=0, subset=category_colnames, thresh=len(category_colnames/2))
-    df = df[category_colnames].fillna(0)
-    '''
     
     # Add the language for each original snippet
     # Source: StackOverflow
@@ -97,8 +100,11 @@ def clean_data(df):
 def save_data(df, category_names, database_filename):
     '''
     INPUT: 
-    OUTPUT: 
-    PURPOSE: 
+        dataframe with all data.
+        category_names (dataframe) contains labels for dependent variables.
+        database_filename as path to database.
+    OUTPUT: None
+    PURPOSE: Save files to database.
     '''
     engine = create_engine('sqlite:///' + str(database_filename))
     df.to_sql('Messages_Table', engine, index=False, if_exists='replace') 
