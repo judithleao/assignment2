@@ -1,7 +1,13 @@
+'''
+>> Potentially need to install <<
+pip install plotly_express
+'''
+
 # Import relevant libraries
 import sys
 import pandas as pd
 from sqlalchemy import create_engine
+from langdetect import detect
 
 ################################################################
 ############################ FUNCTIONS #########################
@@ -18,7 +24,13 @@ def load_data(messages_filepath, categories_filepath):
     df = pd.merge(messages, categories, on='id')
     return df
 
-
+def extract_language(snippet):
+    try:
+        language = detect(snippet)
+    except:
+        language = 'n/a'
+    return language
+    
 def clean_data(df):
     '''
     INPUT: 
@@ -51,6 +63,9 @@ def clean_data(df):
     categories = categories.drop(columns=removal_list)
     for col in reduction_list:
         categories.loc[categories[col] > 1, col] = 0
+    ## Save the category_names
+    category_names = list(categories.columns)
+    category_names = pd.DataFrame(category_names)
     
     # Drop the original categories column from `df`
     df = df.drop(columns=['categories'])
@@ -62,24 +77,32 @@ def clean_data(df):
     
     # Missings in x-variable: Drop if no message
     df = df.dropna(axis=0, subset=['message'])
-    
+        
     '''
     # Missings in y-variable: Drop row if more than half missing, else replace with 0
     df = df.dropna(axis=0, subset=category_colnames, thresh=len(category_colnames/2))
     df = df[category_colnames].fillna(0)
     '''
     
-    return df   
+    # Add the language for each original snippet
+    # Source: StackOverflow
+    # Question by Michael. Profile: https://stackoverflow.com/users/2327821/michael
+    # https://stackoverflow.com/questions/19914937/applying-function-with-multiple-arguments-to-create-a-new-pandas-column
+
+    df['language'] = df['original'].apply(extract_language)
+    
+    return df, category_names
            
        
-def save_data(df, database_filename):
+def save_data(df, category_names, database_filename):
     '''
     INPUT: 
     OUTPUT: 
     PURPOSE: 
     '''
     engine = create_engine('sqlite:///' + str(database_filename))
-    df.to_sql('Messages_Table', engine, index=False, if_exists='replace')  
+    df.to_sql('Messages_Table', engine, index=False, if_exists='replace') 
+    category_names.to_sql('Categories_Table', engine, index=False, if_exists='replace') 
 
 
 def main():
@@ -92,10 +115,10 @@ def main():
         df = load_data(messages_filepath, categories_filepath)
 
         print('Cleaning data...')
-        df = clean_data(df)
+        df, category_names = clean_data(df)
                 
         print('Saving data...\n    DATABASE: {}'.format(database_filepath))
-        save_data(df, database_filepath)
+        save_data(df, category_names, database_filepath)
         
         print('Cleaned data saved to database!')
     

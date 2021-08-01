@@ -1,6 +1,5 @@
 '''
 >> Potentially need to install <<
-pip install langdetect
 pip install plotly_express
 
 pandas must be updated
@@ -35,8 +34,6 @@ from sklearn.multioutput import MultiOutputClassifier
 from sklearn.metrics import classification_report, accuracy_score
 # my own module
 from length_estimator import LengthOfMessage
-from langdetect import detect
-
 
 
 ################################################################
@@ -51,9 +48,11 @@ def load_data(database_filepath):
     '''
     engine = create_engine('sqlite:///' + str(database_filepath))
     df = pd.read_sql("SELECT * FROM Messages_Table", engine)
+    category_names = pd.read_sql("SELECT * FROM Categories_Table", engine)
+    category_names = category_names['0'].to_list()
     # Splitting the data in X and Y variables
     X = df['message']
-    category_names = [col for col in list(df.columns) if col not in ['id', 'message', 'original', 'genre']]
+    #category_names = [col for col in list(df.columns) if col not in ['id', 'message', 'original', 'genre']]
     Y = df[category_names]
     return X, Y, category_names, df
 
@@ -114,8 +113,7 @@ def return_figures(df, category_names): # Doesn't get called in main, only gets 
                  title=f'Total Explained Variance: {total_var:.2f}%', 
                  text='category', 
                  size='category_size',
-                 template='simple_white',
-                )
+                 )
     
     ######################################################
     ############## FIGURE 2: IMBALANCE PLOT ##############
@@ -128,29 +126,19 @@ def return_figures(df, category_names): # Doesn't get called in main, only gets 
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
     fig3 = px.bar(x=genre_names, y=genre_counts)
-    '''
+    
     ######################################################
     ################ FIGURE 4: Languages #################
     ######################################################
-    language_counter_dict = {'n/a': 0}
-    for i in df['original']:
-        try:    
-            lang = detect(i)
-            if lang in language_counter_dict:
-                language_counter_dict[lang] += 1
-            else:
-                language_counter_dict[lang] = 1
-        except:
-            language_counter_dict['n/a'] += 1   
-    df_languages = pd.DataFrame(language_counter_dict, index=[0]).transpose().rename(columns={0:'language'})
-    fig4 = px.bar(df_languages)
+    language_df = pd.DataFrame(df['language'].value_counts())
+    fig4 = px.bar(language_df)
     #----------------------------------------------------#
-    '''
+    
     figures = [
                fig1, 
                fig2, 
-               fig3#, 
-               #fig4
+               fig3, 
+               fig4
               ]
     return figures   
     
@@ -190,7 +178,8 @@ def build_model():
         #'vect__': (try, try, try),
         #'tfidf__': (try, try, try),
         #'moc__':  (try, try, try),
-        'moc__estimator__class_weight':  ("balanced", None)
+        'moc__estimator__class_weight':  ("balanced", 
+                                          None)
     }
     
     cv = GridSearchCV(pipeline, param_grid=parameters, cv=2)

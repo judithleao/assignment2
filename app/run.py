@@ -16,12 +16,15 @@ from sqlalchemy import create_engine
 # Script to import figures and the needed pca module
 from sklearn.decomposition import PCA
 
+from langdetect import detect
 # This helped: https://knowledge.udacity.com/questions/49726, cite this
 # Consider creating a package: https://stackoverflow.com/questions/4383571/importing-files-from-different-folder, answer by joey
 import sys
 sys.path.append("../models")
 from length_estimator import LengthOfMessage
 from train_classifier import return_figures
+
+
 
 #-------------------------------------------------------------------------------------------------------#
 
