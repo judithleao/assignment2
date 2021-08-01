@@ -58,8 +58,10 @@
             <h1 class="text-center">Overview of Original Dataset</h1>
         </div>
     {% endblock %}
-	
-  	<h2 id="tag-line" class="ml-5 mt-3">Disaster Response Topics</h2>
+
+    {% block charts %}
+
+  <h2 id="tag-line" class="ml-5 mt-3">Disaster Response Topics</h2>
     <h4 id="tag-line" class="ml-5 mt-3">Biplot based on Principal Component Analysis.<br>Similar topics cluster together. In the bottom left,
     for instance, we see a weather- and environment-related cluster. Towards the right, there is a basic-needs cluster with clothing, water, food, sheltre and medical aid.
     In the center and top left, infrastructure-related topics cluster. In the center, the topics death, refugees, search and rescue and missing people constitute a fourth 
@@ -90,7 +92,11 @@
                     <div id="{{ids[3]}}"></div>
                 </div>
       </div>
+    {% endblock%}
+
 </div>
+
+
 
 <script type="text/javascript">
        // plots the figure with id
