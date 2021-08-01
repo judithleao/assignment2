@@ -63,7 +63,7 @@ The data was kindly provided via the Udacity course project by FigureEight (now 
 Any citations for code snippets are provided directly in the code in the approriate places.
 Some code was kindly provided by Udacity as part of the course project.
 
-# Citation for libraries:
+### Citation for libraries:
 * flask: Grinberg, M. (2018). Flask web development: developing web applications with python. " O&#x27;Reilly Media, Inc."
 * langdetect: PyPi package by Nakatani Shuyo, slide show here: https://www.slideshare.net/shuyo/language-detection-library-for-java
 * nltk: Bird, Steven, Edward Loper and Ewan Klein (2009), Natural Language Processing with Python. O’Reilly Media Inc.
