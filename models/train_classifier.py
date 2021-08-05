@@ -28,8 +28,8 @@ from nltk.corpus import stopwords
 
 from sklearn.decomposition import PCA
 from sklearn.model_selection import GridSearchCV
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
@@ -216,17 +216,16 @@ def build_model():
             ])),
             ('length_ex', LengthOfMessage())
         ])),
-        ('moc', MultiOutputClassifier(RandomForestClassifier()))
+        ('moc', MultiOutputClassifier(RandomForestClassifier(class_weight="balanced")))
     ])
     parameters = {
-        #'vect__': (try, try, try),
-        #'tfidf__': (try, try, try),
-        #'moc__':  (try, try, try),
-        'moc__estimator__class_weight':  ("balanced", 
-                                          None)
+        'moc__estimator__max_depth': (50,
+                                      100),
+        'moc__estimator__n_estimators': (10,
+                                         20)
     }
     
-    cv = GridSearchCV(pipeline, param_grid=parameters, cv=2)
+    cv = GridSearchCV(pipeline, param_grid=parameters, cv=2, verbose=3, n_jobs=4)
 
     return cv
 
