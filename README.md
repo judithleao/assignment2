@@ -52,15 +52,19 @@ If new input data was to be used it needs to follow the formatting of the existi
     - To run ML pipeline that trains classifier and saves
         `python models/train_classifier.py data/DisasterResponse.db models/classifier.pkl`
 
-2. Run the following command in the app's directory to run your web app.
+2. Run the following command in the app's directory to run your web app. gkjjjjjjjj
     `python run.py`
 
 3. The website will run on port 3001. To run it in the Udacity workspace, please run 'env | grep WORK' and find the website under http://WORKSPACESPACEID-3001.WORKSPACEDOMAIN
 
+## Model training
+class_weight = "balanced" was used from the beginning to account for imbalance in the data.
+4 Parameter combinations with 2 folds meant 8 models needed to be tested.
+Ideally, a larger number of parameters should be tested.
 
 ## Licensing and citations:
 The data was kindly provided via the Udacity course project by FigureEight (now Appen; website: https://appen.com/).
-Any citations for code snippets are provided directly in the code in the approriate places.
+Any citations for code snippets are provided directly in the code in the appropriate places.
 Some code was kindly provided by Udacity as part of the course project.
 
 ### Citation for libraries:
