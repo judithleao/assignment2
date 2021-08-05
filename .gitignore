@@ -1,5 +1,3 @@
 /data/DisasterResponse.db
-/data/disaster_categories.csv
-/data/disaster_messages.csv
 /models/classifier.pkl
 /models/__pycache__
