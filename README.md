@@ -62,7 +62,7 @@ If new input data was to be used it needs to follow the formatting of the existi
 ## Model training
 class_weight = "balanced" was used from the beginning to account for imbalance in the data.
 4 Parameter combinations with 2 folds meant 8 models needed to be tested.
-Ideally, a larger number of parameters should be tested. As the data is imbalanced, certain outcome labels are only predicted with very low accuracy or - in extreme cases - not at all. Better parameter tuning and potentially applying a method such as MLSMOTE.
+Ideally, a larger number of parameters should be tested. As the data is imbalanced, certain outcome labels are only predicted with very low accuracy or - in extreme cases - not at all. Better parameter tuning and potentially applying a method such as MLSMOTE could have helped this.
 
 ## Licensing and citations:
 The data was kindly provided via the Udacity course project by FigureEight (now Appen; website: https://appen.com/).
