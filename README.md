@@ -25,11 +25,13 @@ On the website, statistics of the original data (test and training combined) can
 Input datafiles: 
 - disaster_categories.csv
 - disaster_messages.csv
+
 Python scripts:
 - process_data.py (Pre-processes data, creates database)
 - train_classifier.py (Builds and trains model, saves pickle file with model parameters)
 - run.py (Compiles web-app)
 - length_estimator.py (Module called in train_classifier.py model pipeline)
+
 HTML files:
 - master.html (Basic website structure)
 - go.html (Blocks that replace elements of master.html on click of button)
@@ -52,7 +54,7 @@ If new input data was to be used it needs to follow the formatting of the existi
     - To run ML pipeline that trains classifier and saves
         `python models/train_classifier.py data/DisasterResponse.db models/classifier.pkl`
 
-2. Run the following command in the app's directory to run your web app. gkjjjjjjjj
+2. Run the following command in the app's directory to run your web app.
     `python run.py`
 
 3. The website will run on port 3001. To run it in the Udacity workspace, please run 'env | grep WORK' and find the website under http://WORKSPACESPACEID-3001.WORKSPACEDOMAIN
@@ -60,7 +62,7 @@ If new input data was to be used it needs to follow the formatting of the existi
 ## Model training
 class_weight = "balanced" was used from the beginning to account for imbalance in the data.
 4 Parameter combinations with 2 folds meant 8 models needed to be tested.
-Ideally, a larger number of parameters should be tested.
+Ideally, a larger number of parameters should be tested. As the data is imbalanced, certain outcome labels are only predicted with very low accuracy or - in extreme cases - not at all. Better parameter tuning and potentially applying a method such as MLSMOTE.
 
 ## Licensing and citations:
 The data was kindly provided via the Udacity course project by FigureEight (now Appen; website: https://appen.com/).
