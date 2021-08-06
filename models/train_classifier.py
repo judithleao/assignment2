@@ -1,7 +1,6 @@
 '''
 >> Potentially need to install <<
 pip install plotly_express
-
 pandas must be updated
 '''
 
@@ -197,8 +196,7 @@ def tokenize(text):
     text = re.sub(r"[^a-zA-Z0-9]", " ", text)
     words = word_tokenize(text)
     words = [w for w in words if w not in stopwords.words("english")]
-    stemmed = [PorterStemmer().stem(w) for w in words]
-    lemmed = [WordNetLemmatizer().lemmatize(w) for w in stemmed]
+    lemmed = [WordNetLemmatizer().lemmatize(w) for w in words]
     return lemmed
 
 
@@ -274,6 +272,11 @@ def save_model(model, model_filepath):
 
 
 def main():
+    '''
+    INPUT: None
+    OUTPUT: None
+    PURPOSE: Calls other functions in logical order and fits model.
+    '''
     if len(sys.argv) == 3:
         database_filepath, model_filepath = sys.argv[1:]
         print('Loading data...\n    DATABASE: {}'.format(database_filepath))

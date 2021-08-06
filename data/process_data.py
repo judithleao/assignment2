@@ -112,6 +112,11 @@ def save_data(df, category_names, database_filename):
 
 
 def main():
+    '''
+    INPUT: None
+    OUTPUT: None
+    PURPOSE: Calls other functions in logical order to clean data and save to database.
+    '''
     if len(sys.argv) == 4:
 
         messages_filepath, categories_filepath, database_filepath = sys.argv[1:]
